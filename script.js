@@ -12,7 +12,6 @@ function findCustomerRows(customerNumber) {
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][customerNumberIndex] == customerNumber) {
-        //results.push(data[i].concat(sheet.getName(), i+1))
         
         const startIndex = 18; 
 
@@ -35,16 +34,70 @@ function findCustomerRows(customerNumber) {
   return results;
 }
 
-function exportResultsToNewSheet(results, customerNumber) {
-  //const newSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet();
+function convertDateFormat(dateString) {
+  var parts = dateString.split(/[\/-]/);
+  var year = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+  var date = new Date(year, parts[1] - 1, parts[0]);
+  var formattedDate = date.getFullYear() + '-' +
+                      ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
+                      ('0' + date.getDate()).slice(-2);
+  return formattedDate;
+}
+
+function findByProductionDate(date) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let results = [];
+
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search"));
+  
+    filteredSheets.forEach(sheet => {
+    const data = sheet.getDataRange().getValues();
+
+    const prodDateIndex = 15;
+
+
+    for (let i = 1; i < data.length; i++) {
+      rowDate= new Date(data[i][prodDateIndex]);
+      const rowDateAdjusted = new Date(rowDate.getTime() + (180 * 60000));
+      targetDate = new Date(convertDateFormat(date));
+
+      if (rowDateAdjusted.getTime() === targetDate.getTime()) {
+        
+        const startIndex = 18; 
+        const paddedRow = data[i].length < startIndex ?
+          data[i].concat(Array(startIndex - data[i].length).fill('')) :
+          data[i];
+
+        results.push([
+          ...paddedRow.slice(0, startIndex),
+          sheet.getName(),
+          i + 1, 
+          ...paddedRow.slice(startIndex) 
+        ]);
+        
+
+      }
+    }
+  });
+
+  return results;
+
+}
+
+
+
+//-------------------------------
+
+function exportResultsToNewSheet(results, input) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  let newSheet = ss.getSheetByName('Search Results: ' + customerNumber);
+  let newSheet = ss.getSheetByName('Search Results: ' + input);
   if (newSheet) {
     newSheet.clear();
   } else {
     newSheet = ss.insertSheet();
-    newSheet.setName('Search Results: ' + customerNumber);
+    newSheet.setName('Search Results: ' + input);
   }
 
   const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
@@ -96,10 +149,23 @@ function showCustomerRows(customerNumber) {
   }
 }
 
+function showProdDateRows(date) {
+  const results = findByProductionDate(date);
+
+  if (!results || results.length === 0) {
+    Logger.log('DDDDDDD: ' + results);
+    Logger.log('No rows found for date: ' + date);
+    SpreadsheetApp.getUi().alert('No rows found for date: ' + date);
+  } else {
+    exportResultsToNewSheet(results, date);
+  }
+}
+
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('Functions')
     .addItem('Search Customer', 'showCustomerSearchPrompt')
+    .addItem('Search By Prodcution Date', 'showProductionDatePrompt')
     .addToUi();
 }
 
@@ -113,3 +179,16 @@ function showCustomerSearchPrompt() {
     showCustomerRows(customerNumber);
   }
 }
+
+function showProductionDatePrompt(){
+  const ui = SpreadsheetApp.getUi();
+  
+  const response = ui.prompt('הכנס תאריך כניסה ליצור', ui.ButtonSet.OK_CANCEL);
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const searchDate = response.getResponseText().trim();
+    showProdDateRows(searchDate);
+  }
+
+}
+
