@@ -34,6 +34,7 @@ function findCustomerRows(customerNumber) {
   return results;
 }
 
+
 function convertDateFormat(dateString) {
   var parts = dateString.split(/[\/-]/);
   var year = parts[2].length === 2 ? '20' + parts[2] : parts[2];
@@ -44,7 +45,10 @@ function convertDateFormat(dateString) {
   return formattedDate;
 }
 
+
+
 function findByProductionDate(date) {
+  Logger.log("date");
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ss.getSheets();
   let results = [];
@@ -56,7 +60,6 @@ function findByProductionDate(date) {
 
     const prodDateIndex = 15;
 
-
     for (let i = 1; i < data.length; i++) {
       rowDate= new Date(data[i][prodDateIndex]);
       const rowDateAdjusted = new Date(rowDate.getTime() + (180 * 60000));
@@ -65,6 +68,92 @@ function findByProductionDate(date) {
       if (rowDateAdjusted.getTime() === targetDate.getTime()) {
         
         const startIndex = 18; 
+
+        const paddedRow = data[i].length < startIndex ?
+          data[i].concat(Array(startIndex - data[i].length).fill('')) :
+          data[i];
+
+        results.push([
+          ...paddedRow.slice(0, startIndex),
+          sheet.getName(),
+          i + 1, 
+          ...paddedRow.slice(startIndex) 
+        ]);
+        
+
+      }
+    }
+  });
+
+  return results;
+
+}
+
+function findBySupplyDate(date) {
+  Logger.log("date");
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let results = [];
+
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search"));
+  
+    filteredSheets.forEach(sheet => {
+    const data = sheet.getDataRange().getValues();
+
+    const supplyDateIndex = 16;
+
+    for (let i = 1; i < data.length; i++) {
+      rowDate= new Date(data[i][supplyDateIndex]);
+      const rowDateAdjusted = new Date(rowDate.getTime() + (180 * 60000));
+      targetDate = new Date(convertDateFormat(date));
+
+      if (rowDateAdjusted.getTime() === targetDate.getTime()) {
+        
+        const startIndex = 18; 
+
+        const paddedRow = data[i].length < startIndex ?
+          data[i].concat(Array(startIndex - data[i].length).fill('')) :
+          data[i];
+
+        results.push([
+          ...paddedRow.slice(0, startIndex),
+          sheet.getName(),
+          i + 1, 
+          ...paddedRow.slice(startIndex) 
+        ]);
+        
+
+      }
+    }
+  });
+
+  return results;
+
+}
+
+
+function findByCoordinationDate(date) {
+  Logger.log("date");
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let results = [];
+
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search"));
+  
+    filteredSheets.forEach(sheet => {
+    const data = sheet.getDataRange().getValues();
+
+    const CoordinationDateIndex = 17;
+
+    for (let i = 1; i < data.length; i++) {
+      rowDate= new Date(data[i][CoordinationDateIndex]);
+      const rowDateAdjusted = new Date(rowDate.getTime() + (180 * 60000));
+      targetDate = new Date(convertDateFormat(date));
+
+      if (rowDateAdjusted.getTime() === targetDate.getTime()) {
+        
+        const startIndex = 18; 
+
         const paddedRow = data[i].length < startIndex ?
           data[i].concat(Array(startIndex - data[i].length).fill('')) :
           data[i];
@@ -90,6 +179,7 @@ function findByProductionDate(date) {
 //-------------------------------
 
 function exportResultsToNewSheet(results, input) {
+  //const newSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   let newSheet = ss.getSheetByName('Search Results: ' + input);
@@ -153,7 +243,28 @@ function showProdDateRows(date) {
   const results = findByProductionDate(date);
 
   if (!results || results.length === 0) {
-    Logger.log('DDDDDDD: ' + results);
+    Logger.log('No rows found for date: ' + date);
+    SpreadsheetApp.getUi().alert('No rows found for date: ' + date);
+  } else {
+    exportResultsToNewSheet(results, date);
+  }
+}
+
+function showSupplyDateRows(date) {
+  const results = findBySupplyDate(date);
+
+  if (!results || results.length === 0) {
+    Logger.log('No rows found for date: ' + date);
+    SpreadsheetApp.getUi().alert('No rows found for date: ' + date);
+  } else {
+    exportResultsToNewSheet(results, date);
+  }
+}
+
+function showCoordinationDateRows(date) {
+  const results = findByCoordinationDate(date);
+
+  if (!results || results.length === 0) {
     Logger.log('No rows found for date: ' + date);
     SpreadsheetApp.getUi().alert('No rows found for date: ' + date);
   } else {
@@ -166,6 +277,8 @@ function onOpen() {
   ui.createMenu('Functions')
     .addItem('Search Customer', 'showCustomerSearchPrompt')
     .addItem('Search By Prodcution Date', 'showProductionDatePrompt')
+    .addItem('Search By Supply Date', 'showSupplyDatePrompt')
+    .addItem('Search By Coordination Date', 'showCoordinationDatePrompt')
     .addToUi();
 }
 
@@ -191,4 +304,29 @@ function showProductionDatePrompt(){
   }
 
 }
+
+function showSupplyDatePrompt(){
+  const ui = SpreadsheetApp.getUi();
+  
+  const response = ui.prompt('הכנס תאריך משלוח למחסן', ui.ButtonSet.OK_CANCEL);
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const searchDate = response.getResponseText().trim();
+    showSupplyDateRows(searchDate);
+  }
+
+}
+
+function showCoordinationDatePrompt(){
+  const ui = SpreadsheetApp.getUi();
+  
+  const response = ui.prompt('הכנס תאריך תיאום', ui.ButtonSet.OK_CANCEL);
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const searchDate = response.getResponseText().trim();
+    showCoordinationDateRows(searchDate);
+  }
+
+}
+
 
