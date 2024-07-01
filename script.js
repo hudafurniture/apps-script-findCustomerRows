@@ -3,12 +3,12 @@ function findCustomerRows(customerNumber) {
   const sheets = ss.getSheets();
   let results = [];
 
-  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search"));
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search")  && !sheet.getName().includes("מקורי"));
 
   filteredSheets.forEach(sheet => {
     const data = sheet.getDataRange().getValues();
 
-    const customerNumberIndex = 2;
+    const customerNumberIndex = 1;
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][customerNumberIndex] == customerNumber) {
@@ -53,12 +53,12 @@ function findByProductionDate(date) {
   const sheets = ss.getSheets();
   let results = [];
 
-  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search"));
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search")  && !sheet.getName().includes("מקורי"));
   
     filteredSheets.forEach(sheet => {
     const data = sheet.getDataRange().getValues();
 
-    const prodDateIndex = 15;
+    const prodDateIndex = 14;
 
     for (let i = 1; i < data.length; i++) {
       rowDate= new Date(data[i][prodDateIndex]);
@@ -95,12 +95,12 @@ function findBySupplyDate(date) {
   const sheets = ss.getSheets();
   let results = [];
 
-  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search"));
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search")  && !sheet.getName().includes("מקורי"));
   
     filteredSheets.forEach(sheet => {
     const data = sheet.getDataRange().getValues();
 
-    const supplyDateIndex = 16;
+    const supplyDateIndex = 15;
 
     for (let i = 1; i < data.length; i++) {
       rowDate= new Date(data[i][supplyDateIndex]);
@@ -138,15 +138,171 @@ function findByCoordinationDate(date) {
   const sheets = ss.getSheets();
   let results = [];
 
-  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search"));
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search")  && !sheet.getName().includes("מקורי"));
   
     filteredSheets.forEach(sheet => {
     const data = sheet.getDataRange().getValues();
 
-    const CoordinationDateIndex = 17;
+    const coordinationDateIndex = 16;
 
     for (let i = 1; i < data.length; i++) {
-      rowDate= new Date(data[i][CoordinationDateIndex]);
+      rowDate= new Date(data[i][coordinationDateIndex]);
+      const rowDateAdjusted = new Date(rowDate.getTime() + (180 * 60000));
+      targetDate = new Date(convertDateFormat(date));
+
+      if (rowDateAdjusted.getTime() === targetDate.getTime()) {
+        
+        const startIndex = 18; 
+
+        const paddedRow = data[i].length < startIndex ?
+          data[i].concat(Array(startIndex - data[i].length).fill('')) :
+          data[i];
+
+        results.push([
+          ...paddedRow.slice(0, startIndex),
+          sheet.getName(),
+          i + 1, 
+          ...paddedRow.slice(startIndex) 
+        ]);
+        
+
+      }
+    }
+  });
+
+  return results;
+
+}
+
+
+function findByUrgency() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let results = [];
+
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search") && !sheet.getName().includes("מקורי") );
+  
+    filteredSheets.forEach(sheet => {
+    const data = sheet.getDataRange().getValues();
+
+    const urgencyIndex = 11;
+
+    for (let i = 1; i < data.length; i++) {
+      //Logger.log(data[i][urgencyIndex])
+      if (data[i][urgencyIndex] !== "") {
+        
+        const startIndex = 18; 
+
+        const paddedRow = data[i].length < startIndex ?
+          data[i].concat(Array(startIndex - data[i].length).fill('')) :
+          data[i];
+
+        results.push([
+          ...paddedRow.slice(0, startIndex),
+          sheet.getName(),
+          i + 1, 
+          ...paddedRow.slice(startIndex) 
+        ]);
+        
+
+      }
+    }
+  });
+
+  return results;
+
+}
+
+function findAddressRows(address) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let results = [];
+
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search")  && !sheet.getName().includes("מקורי"));
+
+  filteredSheets.forEach(sheet => {
+    const data = sheet.getDataRange().getValues();
+
+    const addressIndex = 9;
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][addressIndex] == address) {
+        
+        const startIndex = 18; 
+
+        const paddedRow = data[i].length < startIndex ?
+          data[i].concat(Array(startIndex - data[i].length).fill('')) :
+          data[i];
+
+        results.push([
+          ...paddedRow.slice(0, startIndex),
+          sheet.getName(),
+          i + 1, 
+          ...paddedRow.slice(startIndex) 
+        ]);
+        
+
+      }
+    }
+  });
+
+  return results;
+}
+
+
+
+function findDriverRows(driver) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let results = [];
+
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search")  && !sheet.getName().includes("מקורי"));
+
+  filteredSheets.forEach(sheet => {
+    const data = sheet.getDataRange().getValues();
+
+    const driverIndex = 10;
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][driverIndex] == driver) {
+        
+        const startIndex = 18; 
+
+        const paddedRow = data[i].length < startIndex ?
+          data[i].concat(Array(startIndex - data[i].length).fill('')) :
+          data[i];
+
+        results.push([
+          ...paddedRow.slice(0, startIndex),
+          sheet.getName(),
+          i + 1, 
+          ...paddedRow.slice(startIndex) 
+        ]);
+        
+
+      }
+    }
+  });
+
+  return results;
+}
+
+
+function findByOrderDate(date) {
+  Logger.log("date");
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let results = [];
+
+  const filteredSheets = sheets.filter(sheet => !sheet.getName().includes("Search")  && !sheet.getName().includes("מקורי"));
+  
+    filteredSheets.forEach(sheet => {
+    const data = sheet.getDataRange().getValues();
+
+    const orderDateIndex = 2;
+
+    for (let i = 1; i < data.length; i++) {
+      rowDate= new Date(data[i][orderDateIndex]);
       const rowDateAdjusted = new Date(rowDate.getTime() + (180 * 60000));
       targetDate = new Date(convertDateFormat(date));
 
@@ -272,6 +428,52 @@ function showCoordinationDateRows(date) {
   }
 }
 
+function showUrgencyRows() {
+  const results = findByUrgency();
+
+  if (!results || results.length === 0) {
+    Logger.log('No rows found');
+    SpreadsheetApp.getUi().alert('No rows found');
+  } else {
+    exportResultsToNewSheet(results, "Urgent");
+  }
+}
+
+function showAdressRows(address) {
+  const results = findAddressRows(address);
+
+  if (results.length === 0) {
+    Logger.log('No rows found for address: ' + address);
+    SpreadsheetApp.getUi().alert('No rows found for address: ' + address);
+  } else {
+    exportResultsToNewSheet(results, address);
+  }
+}
+
+function showDriverRows(driver) {
+  const results = findDriverRows(driver);
+
+  if (results.length === 0) {
+    Logger.log('No rows found for driver: ' + driver);
+    SpreadsheetApp.getUi().alert('No rows found for driver: ' + driver);
+  } else {
+    exportResultsToNewSheet(results, driver);
+  }
+}
+
+function showOrderDateRows(date) {
+  const results = findByOrderDate(date);
+
+  if (!results || results.length === 0) {
+    Logger.log('No rows found for date: ' + date);
+    SpreadsheetApp.getUi().alert('No rows found for date: ' + date);
+  } else {
+    exportResultsToNewSheet(results, date);
+  }
+}
+
+
+
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('Functions')
@@ -279,6 +481,10 @@ function onOpen() {
     .addItem('Search By Prodcution Date', 'showProductionDatePrompt')
     .addItem('Search By Supply Date', 'showSupplyDatePrompt')
     .addItem('Search By Coordination Date', 'showCoordinationDatePrompt')
+    .addItem('Search By Urgency', 'showUrgencyRows')
+    .addItem('Search By Address', 'showAddressSearchPrompt')
+    .addItem('Search By Driver', 'showDriverSearchPrompt')
+    .addItem('Search By Order Date', 'showOrderDatePrompt')
     .addToUi();
 }
 
@@ -328,5 +534,44 @@ function showCoordinationDatePrompt(){
   }
 
 }
+
+
+function showAddressSearchPrompt() {
+  const ui = SpreadsheetApp.getUi();
+  
+  const response = ui.prompt('הכנס עיר', ui.ButtonSet.OK_CANCEL);
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const address = response.getResponseText();
+    showAdressRows(address);
+  }
+}
+
+function showDriverSearchPrompt() {
+  const ui = SpreadsheetApp.getUi();
+  
+  const response = ui.prompt('הכנס מרכיב', ui.ButtonSet.OK_CANCEL);
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const driver = response.getResponseText();
+    showDriverRows(driver);
+  }
+}
+
+
+function showOrderDatePrompt(){
+  const ui = SpreadsheetApp.getUi();
+  
+  const response = ui.prompt('הכנס תאריך הפקה', ui.ButtonSet.OK_CANCEL);
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const searchDate = response.getResponseText().trim();
+    showOrderDateRows(searchDate);
+  }
+
+}
+
+
+
 
 
